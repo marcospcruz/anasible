@@ -40,7 +40,6 @@
   async: 600
   poll: 5
   ignore_errors: yes
-  when: "'1' == fabric_output.stdout"
 
 - name:  Trying once again {{gofabric8_start}}
   command: "{{gofabric8_start}}"

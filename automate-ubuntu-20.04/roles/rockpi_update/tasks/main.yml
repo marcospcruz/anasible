@@ -1,2 +1,8 @@
 ---
-- name: who am i
+- name: Install {{apt.rockpi.packages}}
+  apt:
+    name: "{{apt.rockpi.packages}}"
+    state: latest
+    force_apt_get: yes
+
+

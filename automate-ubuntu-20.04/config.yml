@@ -13,7 +13,7 @@ raspberry:
 user_account:
   name: marcospcruz
   groups: ['marcospcruz','sudo','libvirt']
-  password: "$6$4tv8dg8fVPQ5J$tGgPega1sSRaW1DEqLoEe69T.jXVIjnNu2PCFTTZbz.XIskFakSkNip4v.7USh7cFW.gU8cooyaMPGsflscsb/"
+  password: "{{password}}"
   home: /home/marcospcruz
 
 
