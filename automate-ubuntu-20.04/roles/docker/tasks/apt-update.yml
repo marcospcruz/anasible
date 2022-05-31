@@ -1,0 +1,38 @@
+---
+- name: Remove old versions docker docker-engine docker.io containerd runc
+  apt:
+    name: ['docker', 'docker-engine', 'docker.io', 'containerd', 'runc']
+    state: absent
+    force: yes
+    purge: yes
+    autoremove: yes
+    autoclean: yes
+
+# - name: Add Docker Repo Key
+#   apt_key: 
+#     url:  https://download.docker.com/linux/ubuntu/gpg
+#     file: /etc/apt/keyrings/docker.gpg
+#     state: present
+- name: Check Docker Repo Key
+  shell: >
+    ls -l /etc/apt/keyrings/docker.gpg|wc -l 
+  register: output
+
+- name: Add Docker Repo Key
+  shell: >
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg |gpg --dearmor -o /etc/apt/keyrings/docker.gpg    
+  when: "'0' == output.stdout"
+  
+- name: Add Docker repo
+  apt_repository:
+    repo: 'deb [arch={{system_info.arch}} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{system_info.release}} stable' 
+    filename: docker
+    state: present  
+
+- name: Install packages {{docker.packages}}
+  apt:
+    name: "{{docker.packages}}"
+    state: present
+    autoclean: yes
+    force_apt_get: yes
+    update_cache: yes

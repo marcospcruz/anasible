@@ -1,0 +1,24 @@
+---
+- name: apt | Downgrade 'docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-compose-plugin','docker-engine'
+  apt:
+    name: ['cgroupfs-mount','cgroup-lite','docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-compose-plugin','docker-engine','podman']
+    # force: yes
+    state: absent
+    # force_apt_get: yes
+    autoremove: yes
+    purge: yes
+    autoclean: yes
+
+
+- name: apt | remove {{apt.packages}}
+  async: 600
+  poll: 5
+  apt:
+    name: "{{apt.packages}}"
+    force: yes
+    # force_apt_get: yes
+    # update_cache: yes
+    autoremove: yes
+    purge: yes
+    autoclean: yes
+    state: absent  

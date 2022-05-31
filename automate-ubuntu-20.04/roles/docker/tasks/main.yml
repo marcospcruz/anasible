@@ -1,0 +1,5 @@
+- name: update cache
+  include_tasks: apt-update.yml
+
+- name: install docker
+  include_tasks: docker.yml

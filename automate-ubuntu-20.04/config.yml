@@ -1,0 +1,111 @@
+id_rsa_file:  /home/marcospcruz/.ssh/id_rsa.pub
+# passphrase: "changeit"
+# root_password: "password"
+timezone: "America/Sao_Paulo"
+raspberry:
+  system:
+    firmware:
+      file:
+        content: "cgroup_enable=memory cgroup_memory=1 net.ifnames=0 dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait"
+        path: /boot/firmware/cmdline.txt
+# nodes: all
+# mkpasswd --method=sha-512
+user_account:
+  name: marcospcruz
+  groups: ['marcospcruz','sudo','libvirt']
+  password: "$6$4tv8dg8fVPQ5J$tGgPega1sSRaW1DEqLoEe69T.jXVIjnNu2PCFTTZbz.XIskFakSkNip4v.7USh7cFW.gU8cooyaMPGsflscsb/"
+  home: /home/marcospcruz
+
+
+apt:
+  modules:
+    packages:
+      - pulseaudio-module-bluetooth 
+      - pulseaudio
+  rockpi:
+    packages:
+    - rockchip-fstab 
+    - rockchip-overlay
+    - linux-4.4-latest # kernel version(>=4.4.154.100)
+    - broadcom-wifibt-firmware(>=0.6)
+    - rockpi4-dtbo
+  packages: 
+  - gnupg2
+  - net-tools  
+  - vim
+  - curl
+  # - python3
+  - bridge-utils 
+  - cpu-checker 
+  - libvirt-clients 
+  - libvirt-daemon 
+  - libvirt-daemon-system
+  - qemu 
+  - qemu-kvm
+  - hdparm
+  - iperf
+  - mtr-tiny
+  - bridge-utils
+  - socat
+  - jq
+  - dnsutils
+  - ca-certificates 
+  - apt-transport-https
+  - gnupg
+  - lsb-release
+  # - apt-transport-https
+  # - ca-certificates
+  # - software-properties-common
+  # - nfs-common
+  # - libc6
+  # - build-essential
+  # - flex
+  # - bison
+  # - libssl-dev
+  # - libelf-dev
+  # - bc
+  # - qemu-kvm
+  
+  # - libvirt-clients
+  # - bridge-utils
+  # - gnupg2
+  # - snapd
+k8s:
+  version: "v1.23.4-rc.0"
+docker:
+  # devicemapper or overlay2
+  # storage_driver: devicemapper
+  storage_driver: overlay2
+  expose_tcp: true
+  # version: "17.12.0~ce-0~ubuntu"
+  version: "5:20.10.16~3-0~ubuntu-focal"
+  packages: 
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-compose-plugin
+                                            
+# https://wiki.radxa.com/Rockpi4/Ubuntu
+rockpi:
+  h2_intfc_conf:
+# I2C
+# Modify file /boot/hw_intfc.conf. Set "on" to enable the optional hardware interfaces while set "off" to disable.
+  - intfc: 
+    - i2c2: "intfc:i2c2=on"
+    - i2c6: "intfc:i2c6=on"
+    - i2c7: "intfc:i2c7=on"
+# PWM
+# Modify file /boot/hw_intfc.conf. Set "on" to enable the optional hardware interfaces while set "off" to disable.
+    - pwm0: "intfc:pwm0=on"
+    - pwm1: "intfc:pwm1=on"
+# SPI
+# Modify file /boot/hw_intfc.conf. Set "on" to enable the optional hardware interfaces while set "off" to disable.
+    - spi1: "intfc:spi1=on"
+    - spi2: "intfc:spi2=on"
+    - dtoverlay:    
+      - devspi1: "intfc:dtoverlay=devspi1"
+      - devspi2: "intfc:dtoverlay=devspi2"
+# UART
+# Modify file /boot/hw_intfc.conf. Set "on" to enable the optional hardware interfaces while set "off" to disable.
+    - uart2: "intfc:uart2=on"
+    - uart4: "intfc:uart4=on"

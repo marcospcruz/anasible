@@ -1,0 +1,143 @@
+---
+- name: Create group
+  group:
+    # name: "{{ user_account.name }}"
+    name: docker
+    state: present
+  when: "'root' in whoami.stdout"
+
+- name: append user  
+  user:
+    name: "{{ user_account.name }}"
+    groups: docker
+    append: yes
+
+- name: newgrp docker
+  # command: "kubeadm version --output yaml '|grep gitVersion'"
+  shell: newgrp docker
+
+- name: "{{user_account.path}}"/.docker
+  file:
+    state: directory
+    path: "{{user_account.path}}"/.docker
+    owner: "{{user_account.name}}"
+    groups: "docker"
+    mode: "0775"
+  
+
+# - name: apt | Downgrade 'docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-compose-plugin','docker-engine'
+#   apt:
+#     name: ['cgroupfs-mount','cgroup-lite','docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-compose-plugin','docker-engine']
+#     # force: yes
+#     state: absent
+#     # force_apt_get: yes
+#     autoremove: yes
+#     purge: yes
+#     autoclean: yes
+#   # ignore_errors: True
+#   register: apt_result
+#   when: "'docker.version' not in 'apt_check_result.stdount'"
+#   # with_items:
+#   #   - docker
+#   #   - docker-engine 
+#   #   - docker.io
+#   #   - containerd
+#   #   - runc
+# - debug:
+#     msg: "{{apt_result}}" 
+
+# - name: remove /etc/docker/daemon.json
+#   file:
+#     state: absent
+#     path: /etc/docker/daemon.json
+#   register: daemon_json
+
+# - debug:
+#     msg: "{{daemon_json}}"
+
+# - name: remove /lib/systemd/system/docker.service
+#   file:
+#     state: absent
+#     path: /lib/systemd/system/docker.service
+#   register: service_docker
+
+# - debug:
+#     msg: "{{service_docker}}"
+
+# - name: remove /var/lib/docker
+#   file:
+#     state: absent
+#     path: /var/lib/docker
+#   register: var_lib_docker
+
+# - debug:
+#     msg: "{{var_lib_docker}}"
+
+# - name: remove /lib/systemd/system/docker.service
+#   file:
+#     state: absent
+#     path: /lib/systemd/system/docker.service
+#   register: docker_service
+
+# - debug:
+#     msg: "{{docker_service}}"
+
+# - name: remove /var/lib/containerd
+#   file:
+#     state: absent
+#     path: /var/lib/containerd
+#   register: var_lib_containerd
+
+# - debug:
+#     msg: "{{var_lib_containerd}}"
+
+# - name: Doownload get-docker
+#   get_url:
+#     url: https://get.docker.com
+#     dest: /home/ubuntu/get-docker.sh
+#     mode: 0755
+#   register: download_getdocker
+# - debug:
+#     msg: "{{download_getdocker}}"
+
+# - name: run getdocker.sh
+#   command: "/home/ubuntu/get-docker.sh"
+#   register: result
+# - debug:
+#     msg: "{{result}}"
+
+
+- name: Prepare docker expose args for service
+  set_fact:
+    dockerd_extra_args: "{{ ', \"hosts\": [ \"fd://\", \"tcp://0.0.0.0:2375\"]' if docker.expose_tcp else '' }}"
+
+- name: Replace the startup command for Docker
+  lineinfile: 
+    dest: /lib/systemd/system/docker.service
+    regexp: '^ExecStart'
+    line: 'ExecStart=/usr/bin/dockerd'
+    state: present
+  # register: result_service
+- name: Reload systemd when service definition changed
+  command: systemctl daemon-reload
+
+- name: Update docker service startup
+  template: 
+    src: docker_daemon.json 
+    dest: /etc/docker/daemon.json
+  register: result
+  notify:
+  - restart docker
+  
+- name: systemctl enable docker.service
+  command: systemctl enable docker.service
+
+- name: systemctl enable containerd.service
+  command: systemctl enable containerd.service
+
+- name: Reload systemd when service definition changed
+  command: systemctl daemon-reload
+  # when: result_service.failed == false
+
+- name: Notify Docker service right now to restart
+  meta: flush_handlers

@@ -1,0 +1,14 @@
+---
+- name: who am i
+  command: whoami
+  register: whoami
+
+- debug:
+    msg: "I am {{whoami.stdout}}"
+
+- name: Update apt cache
+  include_tasks: apt-update.yml
+
+- name: Podman | Info
+  become_user: "{{user_account.name}}"
+  command:  podman info

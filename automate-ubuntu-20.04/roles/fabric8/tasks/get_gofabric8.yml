@@ -1,0 +1,43 @@
+---
+- name: check gofabric8
+  shell: >
+    find  /usr/local/bin/ -name 'gofabric8' |wc -l
+  register: status
+
+- name: Ensure group "fabric8" exists
+  ansible.builtin.group:
+    name: fabric8
+    state: present
+
+- name: Download fabric8
+  get_url:
+    url: https://github.com/fabric8io/gofabric8/releases/download/v0.4.176/gofabric8-linux-arm
+    dest: /usr/local/bin/gofabric8
+    mode: 0775
+    group: fabric8
+  when: "'0' == status.stdout"
+
+- name: Add User to fabric8 group
+  ansible.builtin.user:
+    name: "{{user_account.name}}"
+    groups: fabric8
+    append: yes
+    state: present
+
+- name: teste
+  shell: >
+    cat {{user_account.home}}/.bashrc |grep 'fabric8' |wc -l
+  register: output
+- debug:
+    msg: "{{output}}"
+- name: Edit {{user_account.home}}/.bashrc
+  # ansible.builtin.lineinfile:
+  #   path: "{{user_account.home}}/.bashrc"
+  #   # search_string: 'fabric8'
+  #   force: yes
+  #   line: 'export PATH=$PATH:$HOME/.fabric8/bin'
+  #   owner: "{{user_account.name}}"
+    # state: present
+  shell: >
+    echo 'export PATH=$PATH:$HOME/.fabric8/bin' >> {{user_account.home}}/.bashrc
+  when: "'0' == output.stdout"

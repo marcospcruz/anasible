@@ -1,0 +1,49 @@
+---
+# - name: podman machine
+#   include_tasks: podman-machine.yml
+
+- name:  Check gofabric8
+  shell: >
+    find $(which gofabric8) |wc -l
+  register: fabric_output
+
+
+- name: Run {{gofabric8_start}}
+  command: "{{gofabric8_start}}"
+  when: "'1' == fabric_output.stdout"
+  register: rc_status
+  ignore_errors: yes
+  async: 600
+  poll: 5
+
+- debug:
+    msg: "{{rc_status.rc}}"
+- name:  minikube delete
+  command: "{{user_account.home}}/.fabric8/bin/minikube delete"
+  when: "'1' == fabric_output.stdout"  
+  ignore_errors: yes
+  async: 600
+  poll: 5
+
+
+
+- name:  minikube start
+  command: "{{user_account.home}}/.fabric8/bin/minikube start --memory=1848mb --driver=podman --kubernetes-version={{k8s.version}}"
+  when: "'1' == fabric_output.stdout"  
+  async: 600
+  poll: 5
+  ignore_errors: yes
+
+- name:  minikube update-context
+  command: "{{user_account.home}}/.fabric8/bin/minikube update-context"
+  when: "'1' == fabric_output.stdout"  
+  async: 600
+  poll: 5
+  ignore_errors: yes
+  when: "'1' == fabric_output.stdout"
+
+- name:  Trying once again {{gofabric8_start}}
+  command: "{{gofabric8_start}}"
+  when: "'1' == fabric_output.stdout"
+  register: rc_status
+  # ignore_errors: yes

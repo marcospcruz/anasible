@@ -1,0 +1,11 @@
+---
+- name: Check network-config
+  shell: >
+    cat /boot/firmware/network-config |grep WIFI-5G|wc -l
+  register: network_config
+
+# - name: Setup network-config
+#   template:
+#     src: network-config
+#   when: '0' == 'network-config.stdout'
+  

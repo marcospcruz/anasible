@@ -1,0 +1,23 @@
+---
+
+- name: Added a user account whose account you want to expire
+  ansible.builtin.user:
+    name: "{{user_account.name}}"
+    shell: /bin/bash
+    group: "{{user_account.name}}"
+    groups: "{{user_account.groups}}"
+    create_home : yes
+    password: "{{user_account.password}}"
+    state: absent
+    # expires: 1422403387
+  when: "'root' in whoami.stdout"
+- name: user home
+  file:
+    path: "{{user_account.home}}"
+    owner: "{{user_account.name}}"
+    state: absent
+- name: Create group
+  group:
+    name: "{{ user_account.name }}"
+    state: absent
+  when: "'root' in whoami.stdout"

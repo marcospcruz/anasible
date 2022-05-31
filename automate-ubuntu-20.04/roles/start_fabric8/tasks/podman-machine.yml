@@ -1,0 +1,55 @@
+---
+# - name:  podman machine rm podman-machine-default
+#   file:
+#     # state: present
+#     path: "{{item}}"
+#     state: directory
+#   with_items:
+#   - "{{user_account.home}}/.config/containers"
+#   ignore_errors: yes
+- name: podman info
+  shell: >
+    podman info
+
+- name: podman machine check
+  shell: >
+    podman machine list |grep -v NAME |wc -l
+  register: machine
+
+- name:  podman machine rm podman-machine-default
+  shell: >
+    podman machine rm podman-machine-default 
+  when: "'0' != machine.stdout"
+
+#   # ignore_errors: yes
+
+# - name: Overwrite file {{user_account.home}}/.config/containers/containers.conf
+#   template:
+#     src: containers.conf
+#     dest: "{{user_account.home}}/.config/containers/containers.conf"
+ 
+# - name: Overwrite file {{user_account.home}}/.config/containers/storage.conf
+#   template:
+#     src: storage.conf
+#     dest: "{{user_account.home}}/.config/containers/storage.conf"
+
+- name:  podman podman machine init
+  async: 600
+  poll: 5
+  shell: >
+    podman machine init 
+  ignore_errors: yes
+  when: "'0' == machine.stdout"
+
+- name:  podman start
+  async: 600
+  poll: 5
+  shell: >
+    podman machine start 
+
+
+- name:  podman system connection default podman-machine
+  async: 45
+  poll: 5
+  shell: >
+    podman system connection default podman-machine

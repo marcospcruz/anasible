@@ -1,0 +1,60 @@
+---
+- name: apt | Downgrade 'docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-compose-plugin','docker-engine'
+  apt:
+    name: ['cgroupfs-mount','cgroup-lite','docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-compose-plugin','docker-engine']
+    # force: yes
+    state: absent
+    # force_apt_get: yes
+    autoremove: yes
+    purge: yes
+    autoclean: yes
+  # ignore_errors: True
+  register: apt_result
+
+- debug:
+    msg: "{{apt_result}}" 
+
+- name: docker | remove /etc/docker/daemon.json
+  file:
+    state: absent
+    path: /etc/docker/daemon.json
+  register: daemon_json
+
+- debug:
+    msg: "{{daemon_json}}"
+
+- name: docker | remove /lib/systemd/system/docker.service
+  file:
+    state: absent
+    path: /lib/systemd/system/docker.service
+  register: service_docker
+
+- debug:
+    msg: "{{service_docker}}"
+
+- name: docker | remove /var/lib/docker
+  file:
+    state: absent
+    path: /var/lib/docker
+  register: var_lib_docker
+
+- debug:
+    msg: "{{var_lib_docker}}"
+
+- name: docker | remove /lib/systemd/system/docker.service
+  file:
+    state: absent
+    path: /lib/systemd/system/docker.service
+  register: docker_service
+
+- debug:
+    msg: "{{docker_service}}"
+
+- name: docker | remove /var/lib/containerd
+  file:
+    state: absent
+    path: /var/lib/containerd
+  register: var_lib_containerd
+
+- debug:
+    msg: "{{var_lib_containerd}}"

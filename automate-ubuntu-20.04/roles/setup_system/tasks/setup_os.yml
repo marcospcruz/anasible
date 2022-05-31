@@ -1,0 +1,50 @@
+# - name: Get {{raspberry.system.firmware.file.path}} checksum
+#   stat:
+#     path: "{{raspberry.system.firmware.file.path}}"
+#   register: firmware_config
+
+# - name: Firmware Template 
+#   template: 
+#     src: cmdline.txt 
+#     # dest: /etc/apt/preferences.d/docker
+#   register: firmware_template
+
+- name: Get {{raspberry.system.firmware.file.path}} checksum
+  stat:
+    path: "{{raspberry.system.firmware.file.path}}"
+  register: firmware_config
+  ignore_errors: True
+- debug: 
+    msg: "{{firmware_config.stat}}"
+
+- name: Raspberry | Getting device boot firmware configuration
+  shell: >
+    cat {{raspberry.system.firmware.file.path}}
+  register: result
+  ignore_errors: True
+
+- debug:
+    msg: "{{result.stdout}}"
+
+# - name: Raspberry | 
+
+- name: Raspberry | Updating firmware configuration for cgroup
+  shell: >
+    cp {{raspberry.system.firmware.file.path}} {{raspberry.system.firmware.file.path}}.bkp 
+  when: raspberry.system.firmware.file.content != result.stdout
+  register: bkp_file_result
+  
+
+- debug:
+    msg: "{{bkp_file_result}}"
+
+- name: Firmware Template 
+  template: 
+    src: cmdline.txt 
+    dest: "{{raspberry.system.firmware.file.path}}"
+  when: raspberry.system.firmware.file.content != result.stdout
+
+- name: Wait for server to restart
+  reboot:
+    reboot_timeout: 3600
+  when: raspberry.system.firmware.file.content != result.stdout

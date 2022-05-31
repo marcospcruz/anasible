@@ -1,0 +1,56 @@
+---
+# - name:  Add Repo Key {{CRI_IO_VERSION}}/xUbuntu_{{system_info.release}}
+#   apt_key: 
+#     url:  https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{CRI_IO_VERSION}}/xUbuntu_{{system_info.release}}/Release.key
+#     state: present
+
+# - name:  Add Repo Key xUbuntu_{{system_info.release}}
+#   apt_key: 
+#     url:  https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{system_info.release}}/Release.key
+#     state: present
+
+# - name:  add apt repo devel:kubic:libcontainers:stable
+#   # Try to pick up latest stable builds. Switch over to '-unstable' if targeting latest releases
+#   apt_repository: 
+#     repo: 'deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{system_info.release}}/ /' 
+#     filename: devel:kubic:libcontainers:stable
+#     state: present
+
+# - name:  add apt repo devel:kubic:libcontainers:stable:cri-o:xUbuntu_{{system_info.release}}
+#   # Try to pick up latest stable builds. Switch over to '-unstable' if targeting latest releases
+#   apt_repository: 
+#     repo: 'deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{CRI_IO_VERSION}}/xUbuntu_{{system_info.release}}/ /' 
+#     filename: devel:kubic:libcontainers:stable:cri-o:xUbuntu_{{system_info.release}}
+#     state: present
+
+
+
+# - name: apt | 'cri-o', 'cri-o-runc'
+#   apt:
+#     name: ['cri-o', 'cri-o-runc']
+#     # force: yes
+#     force_apt_get: yes
+#     update_cache: yes
+#     state: present
+
+
+
+- name: enable libvirtd
+  command: systemctl status libvirtd
+  register: libvirtd_status
+- debug:
+    msg: "{{libvirtd_status}}"
+    
+- name: enable libvirtd
+  command: systemctl enable --now libvirtd
+  # register: libvirtd_status
+
+- name: lsmod |grep -i kvm
+  shell: >
+    lsmod |grep -i kvm 
+  # state: present
+  register: kvm_status
+  ignore_errors: yes
+
+- debug:
+    msg: "{{kvm_status}}"

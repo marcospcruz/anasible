@@ -1,0 +1,14 @@
+---
+- name: Get gofabric8
+  include_tasks: get_gofabric8.yml
+
+# - name: Minikube | Get install
+#   get_url:
+#     url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-arm64
+#     dest: /tmp/minikube-linux-arm64
+
+
+# - name: Minikube | install
+#   command: install /tmp/minikube-linux-arm64 /usr/local/bin/minikube
+  
+

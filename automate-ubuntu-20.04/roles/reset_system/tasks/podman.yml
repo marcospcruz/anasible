@@ -1,0 +1,38 @@
+---
+- name: apt | Remove Podman
+  apt:
+    name: ['podman']
+    # force: yes
+    state: absent
+    # force_apt_get: yes
+    autoremove: yes
+    purge: yes
+    autoclean: yes
+
+- name: check podman version
+  shell: > 
+    echo "$(podman version)"
+  register: podman_version
+
+- debug:
+    msg: "{{podman_version}}"
+
+
+
+- name: remove kubernetes directory config
+  file:
+    state: absent
+    path: "{{item}}"
+  with_items:
+  - /home/marcospcruz/.config
+  - /home/marcospcruz/.fabric8
+  - /home/marcospcruz/.kube
+  - /home/marcospcruz/.local
+  - /home/marcospcruz/.minikube
+  - /etc/apt/sources.list.d
+  - /usr/local/bin/minikube
+
+- name: remove kubernetes directory config
+  file:
+    state: directory
+    path: /etc/apt/sources.list.d

@@ -1,0 +1,43 @@
+- hosts: ['rockpi-4b']
+  gather_facts: yes
+  remote_user: "{{ansible_remote_user}}"
+  become: true
+  # become_method: sudo
+  vars_files:
+    - config.yml
+  vars:
+    CRI_IO_VERSION: 1.17
+  roles:
+  # - defaults
+  - rockpi_update
+
+- hosts: ['raspberry-4-node-master','raspberry-4-node-2']
+  gather_facts: yes
+  remote_user: "{{ansible_remote_user}}"
+  become: true
+  # become_method: sudo
+  vars_files:
+    - config.yml
+  vars:
+    CRI_IO_VERSION: 1.17
+  roles:
+  - defaults
+  - setup_system
+
+- hosts: all
+  gather_facts: yes
+  remote_user: "{{ansible_remote_user}}"
+  become: true
+  # become_method: sudo
+  vars_files:
+    - config.yml
+  vars:
+    CRI_IO_VERSION: 1.17
+
+  roles:
+  - defaults
+  # - kvm-hyphervisor
+  # - podman
+  - docker
+  # - fabric8
+ 

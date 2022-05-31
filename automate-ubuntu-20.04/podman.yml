@@ -1,0 +1,13 @@
+- hosts: master
+  gather_facts: yes
+  remote_user: "{{ansible_remote_user}}"
+  become: true
+  # become_method: sudo
+  vars_files:
+    - config.yml
+  
+
+  roles:
+    - defaults
+    - podman
+
