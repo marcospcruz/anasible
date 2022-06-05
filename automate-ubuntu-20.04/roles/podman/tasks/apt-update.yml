@@ -3,7 +3,7 @@
   apt_key: 
     url:  https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{system_info.release}}/Release.key
     state: present
-
+  become: true
 - name: Add Podman Repo
   # Try to pick up latest stable builds. Switch over to '-unstable' if targeting latest releases
   apt_repository: 
@@ -12,9 +12,9 @@
     state: present
   async: 600
   poll: 5
+  become: true
 
-
-- name: apt | Install Podman
+- name:  Install Podman
   apt:
     name: podman
     # force: yes
@@ -26,7 +26,7 @@
     autoclean: yes
   async: 600
   poll: 5
-
+  become: true
 - name: Check registries bkp
   shell: >
     ls /etc/containers/registries.conf.bkp |wc -l
@@ -37,9 +37,11 @@
     mv /etc/containers/registries.conf /etc/containers/registries.conf.bkp 
   # state: absent
   # ignore_errors: True
+  become: true
   when: "'0' == status.stdout"
   
 - name:  Registries
   template: 
     src: registries.conf 
     dest: /etc/containers/registries.conf  
+  become: true

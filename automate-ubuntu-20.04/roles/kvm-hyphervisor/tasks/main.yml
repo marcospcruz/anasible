@@ -2,26 +2,26 @@
 # - name:  Add Repo Key {{CRI_IO_VERSION}}/xUbuntu_{{system_info.release}}
 #   apt_key: 
 #     url:  https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{CRI_IO_VERSION}}/xUbuntu_{{system_info.release}}/Release.key
-#     state: present
+#     state: "{{state_value}}"
 
 # - name:  Add Repo Key xUbuntu_{{system_info.release}}
 #   apt_key: 
 #     url:  https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{system_info.release}}/Release.key
-#     state: present
+#     state: "{{state_value}}"
 
 # - name:  add apt repo devel:kubic:libcontainers:stable
 #   # Try to pick up latest stable builds. Switch over to '-unstable' if targeting latest releases
 #   apt_repository: 
 #     repo: 'deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{system_info.release}}/ /' 
 #     filename: devel:kubic:libcontainers:stable
-#     state: present
+#     state: "{{state_value}}"
 
 # - name:  add apt repo devel:kubic:libcontainers:stable:cri-o:xUbuntu_{{system_info.release}}
 #   # Try to pick up latest stable builds. Switch over to '-unstable' if targeting latest releases
 #   apt_repository: 
 #     repo: 'deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{CRI_IO_VERSION}}/xUbuntu_{{system_info.release}}/ /' 
 #     filename: devel:kubic:libcontainers:stable:cri-o:xUbuntu_{{system_info.release}}
-#     state: present
+#     state: "{{state_value}}"
 
 
 
@@ -31,9 +31,14 @@
 #     # force: yes
 #     force_apt_get: yes
 #     update_cache: yes
-#     state: present
+#     state: "{{state_value}}"
 
-
+# - name: append user  
+#   user:
+#     name: "{{ user_account.name }}"
+#     groups: libvirtd
+#     append: yes
+#   become: yes
 
 - name: enable libvirtd
   command: systemctl status libvirtd
@@ -45,12 +50,36 @@
   command: systemctl enable --now libvirtd
   # register: libvirtd_status
 
+- name: systemctl start  libvirtd
+  command: systemctl start  libvirtd
+  become: true
+
 - name: lsmod |grep -i kvm
   shell: >
     lsmod |grep -i kvm 
-  # state: present
+  # state: "{{state_value}}"
   register: kvm_status
   ignore_errors: yes
 
 - debug:
-    msg: "{{kvm_status}}"
+    msg: "{{item}}"
+  with_items: kvm_status.stdout_lines
+
+- name: configure network
+  command: virsh net-start default
+  become: true
+  ignore_errors: yes
+- name: configure network
+  command: virsh net-autostart default
+  become: true
+  ignore_errors: yes
+
+# - name: Download fabric8
+#   get_url:
+#     url: https://github.com/machine-drivers/docker-machine-driver-hyperkit/releases/download/v1.0.0/docker-machine-driver-hyperkit 
+#     dest: /usr/local/bin/docker-machine-driver-hyperkit
+#     mode: 0775
+#     group: wheel
+#   become: yes
+#   when: "'0' == status.stdout"
+  

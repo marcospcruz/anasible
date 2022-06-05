@@ -6,60 +6,25 @@
 - debug:
     msg: "I am {{whoami.stdout}}"
 
-
-- name: Set timezone
-  timezone: 
-    name: "{{ timezone }}"
-  when: "whoami.stdout == 'root'"
-
-- name: Update timezone
-  command: dpkg-reconfigure --frontend noninteractive tzdata
-  when: "whoami.stdout == 'root'"
-
-- name: Install locale
-  locale_gen:
-    name: en_US.UTF-8
-    state: present
-  when: "whoami.stdout == 'root'"
-
-- name: Set default locale
-  copy:
-    content: export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
-    dest: /etc/profile.d/default_locale.sh
-    mode: 0755
-  when: "whoami.stdout == 'root'"
-  
-- name: dpkg reconfigure
-  shell: >
-    dpkg --configure -a
-  async: 600
-  poll: 5
-  when: "whoami.stdout == 'root'"
-
-- name: apt install {{apt.packages}}
-  async: 600
-  poll: 5
-  apt:
-    name: "{{apt.packages}}"
-    # force: yes
-    # upgrade: yes
-    autoclean: yes
-    force_apt_get: yes
-    update_cache: yes
-    install_recommends: yes
-    state: present
-  when: "whoami.stdout == 'root'"
-
 - name: Get System Info
   # command: "dpkg --print-architecture"
   shell: >
     echo {\"arch\": \"$(dpkg --print-architecture)\", \"distro\": \"$(lsb_release -cs)\", \"release\": \"$(lsb_release -rs)\"}
   register: result
 
+- name: sudo dpkg --configure -a
+  command: dpkg --configure -a
+  become: yes
+  # shell: >
+  #   echo {\"arch\": \"$(dpkg --print-architecture)\", \"distro\": \"$(lsb_release -cs)\", \"release\": \"$(lsb_release -rs)\"}
+  
+
 - name: convert result
   set_fact:  
     system_info: "{{ result.stdout|from_json }}"
 
-- name: Create user
-  include_tasks: user.yml
+- name: user config {{user_account.home}}/.bashrc
+  stat:
+    path: "{{user_account.home}}/.bashrc"
+  register: bashrc
 

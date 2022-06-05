@@ -12,27 +12,38 @@
 #   apt_key: 
 #     url:  https://download.docker.com/linux/ubuntu/gpg
 #     file: /etc/apt/keyrings/docker.gpg
-#     state: present
+#     state: "{{state_value}}"
+- name:  /etc/apt/keyrings/
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+  become: yes
+
 - name: Check Docker Repo Key
   shell: >
     ls -l /etc/apt/keyrings/docker.gpg|wc -l 
+  become: yes
   register: output
-
+- debug: 
+    msg: "{{output}}"
 - name: Add Docker Repo Key
   shell: >
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg |gpg --dearmor -o /etc/apt/keyrings/docker.gpg    
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg |gpg --dearmor -o /etc/apt/keyrings/docker.gpg  
+  become: yes  
   when: "'0' == output.stdout"
   
 - name: Add Docker repo
   apt_repository:
-    repo: 'deb [arch={{system_info.arch}} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{system_info.release}} stable' 
+    repo: 'deb [arch={{system_info.arch}} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{system_info.distro}} stable' 
     filename: docker
-    state: present  
+    state: "{{state_value}}"  
+  become: yes
 
 - name: Install packages {{docker.packages}}
   apt:
     name: "{{docker.packages}}"
-    state: present
+    state: "{{state_value}}"
     autoclean: yes
     force_apt_get: yes
     update_cache: yes
+  become: yes

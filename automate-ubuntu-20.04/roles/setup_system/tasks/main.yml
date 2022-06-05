@@ -1,11 +1,4 @@
 ---
-- name: who am i
-  command: whoami
-  register: whoami
-
-- debug:
-    msg: "I am {{whoami.stdout}}"
-
 - name: Setup Ubuntu 20.04
   include_tasks: network-config.yml
 

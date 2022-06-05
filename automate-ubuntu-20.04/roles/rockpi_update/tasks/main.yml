@@ -1,8 +1,20 @@
 ---
+# - name: Add gpg key
+#   apt_key:
+#     url: "apt.radxa.com/stretch/public.key"
+# - name: Add apt-repo
+#   apt_repository:
+#     repo: "deb http://apt.radxa.com/{{system_info.distro}}/ {{system_info.distro}}%-testing main"
+#     filename: radxa
+#   register: radxa
+
+
 - name: Install {{apt.rockpi.packages}}
   apt:
     name: "{{apt.rockpi.packages}}"
     state: latest
     force_apt_get: yes
-
+    update_cache: yes
+    # upgrade: yes
+    install_recommends: yes
 

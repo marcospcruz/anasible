@@ -1,60 +1,59 @@
 ---
-- name: apt | Downgrade 'docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-compose-plugin','docker-engine'
+- name: Remove {{docker.packages}}
   apt:
-    name: ['cgroupfs-mount','cgroup-lite','docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-compose-plugin','docker-engine']
+    name: "{{docker.packages}}"
+    # name: ['cgroupfs-mount','cgroup-lite','docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-compose-plugin','docker-engine']
     # force: yes
     state: absent
     # force_apt_get: yes
     autoremove: yes
     purge: yes
-    autoclean: yes
+    # autoclean: yes
   # ignore_errors: True
   register: apt_result
+
+- name: dockerd-rootless-setuptool.sh uninstall --force
+  command: dockerd-rootless-setuptool.sh uninstall --force
+  become_user: "{{user_account.name}}"
+  ignore_errors: True
 
 - debug:
     msg: "{{apt_result}}" 
 
-- name: docker | remove /etc/docker/daemon.json
+- name:  remove docker files
   file:
     state: absent
-    path: /etc/docker/daemon.json
-  register: daemon_json
-
-- debug:
-    msg: "{{daemon_json}}"
-
-- name: docker | remove /lib/systemd/system/docker.service
-  file:
+    path: "{{item}}"
+  with_items:
+  - "/etc/apt/keyrings"
+  - "/etc/apt/sources.list.d/docker.list"
+  - "/etc/docker/daemon.json"
+  - "/var/run/docker.sock"
+  - "/lib/systemd/system/docker.service"
+  - "/var/lib/docker"
+  - "/var/lib/containerd"
+  - "$XDG_RUNTIME_DIR"
+- name: user config {{user_account.home}}/.bashrc
+  stat:
+    path: "{{user_account.home}}/.bashrc"
+  register: bashrc
+- debug: 
+    msg: "{{bashrc}}"
+- name: update bashrc
+  lineinfile: 
+    dest: "{{bashrc.stat.path}}"
+    regexp: '{{item}}'
+    line: "{{item}}"
     state: absent
-    path: /lib/systemd/system/docker.service
-  register: service_docker
+  # with_items: "{{docker.user_env_vars}}"
+  with_items: "{{docker.user_env_vars}}"
+  when: "bashrc.stat.exists"
+  
 
-- debug:
-    msg: "{{service_docker}}"
-
-- name: docker | remove /var/lib/docker
-  file:
+- name: Delete group
+  group:
+    # name: "{{ user_account.name }}"
+    name: docker
     state: absent
-    path: /var/lib/docker
-  register: var_lib_docker
-
-- debug:
-    msg: "{{var_lib_docker}}"
-
-- name: docker | remove /lib/systemd/system/docker.service
-  file:
-    state: absent
-    path: /lib/systemd/system/docker.service
-  register: docker_service
-
-- debug:
-    msg: "{{docker_service}}"
-
-- name: docker | remove /var/lib/containerd
-  file:
-    state: absent
-    path: /var/lib/containerd
-  register: var_lib_containerd
-
-- debug:
-    msg: "{{var_lib_containerd}}"
+  become: yes
+  # when: "'root' in whoami.stdout"

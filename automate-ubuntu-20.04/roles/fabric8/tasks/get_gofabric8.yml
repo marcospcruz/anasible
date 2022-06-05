@@ -7,7 +7,7 @@
 - name: Ensure group "fabric8" exists
   ansible.builtin.group:
     name: fabric8
-    state: present
+    state: "{{state_value}}"
 
 - name: Download fabric8
   get_url:
@@ -15,6 +15,7 @@
     dest: /usr/local/bin/gofabric8
     mode: 0775
     group: fabric8
+  become: yes
   when: "'0' == status.stdout"
 
 - name: Add User to fabric8 group
@@ -22,8 +23,8 @@
     name: "{{user_account.name}}"
     groups: fabric8
     append: yes
-    state: present
-
+    state: "{{state_value}}"
+  become: yes
 - name: teste
   shell: >
     cat {{user_account.home}}/.bashrc |grep 'fabric8' |wc -l
@@ -37,7 +38,16 @@
   #   force: yes
   #   line: 'export PATH=$PATH:$HOME/.fabric8/bin'
   #   owner: "{{user_account.name}}"
-    # state: present
+    # state: "{{state_value}}"
   shell: >
     echo 'export PATH=$PATH:$HOME/.fabric8/bin' >> {{user_account.home}}/.bashrc
   when: "'0' == output.stdout"
+
+# - name: "Install minikube "
+#   get_url:
+#     url: minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-arm64
+#     dest: '$HOME/.fabric8/bin/minikube'
+#     mode: 0775
+#     group: fabric8
+#   become_user: "{{user_account.name}}"
+#   when: "'0' == status.stdout"

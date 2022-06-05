@@ -3,26 +3,28 @@
   group:
     # name: "{{ user_account.name }}"
     name: docker
-    state: present
-  when: "'root' in whoami.stdout"
+    state: "{{state_value}}"
+  become: yes
+  # when: "'root' in whoami.stdout"
 
 - name: append user  
   user:
     name: "{{ user_account.name }}"
     groups: docker
     append: yes
+  become: yes
 
 - name: newgrp docker
   # command: "kubeadm version --output yaml '|grep gitVersion'"
   shell: newgrp docker
 
-- name: "{{user_account.path}}"/.docker
-  file:
-    state: directory
-    path: "{{user_account.path}}"/.docker
-    owner: "{{user_account.name}}"
-    groups: "docker"
-    mode: "0775"
+# - name: "{{user_account.path}}/.docker"
+#   file:
+#     state: directory
+#     path: "{{user_account.path}}/.docker"
+#     owner: "{{user_account.name}}"
+#     groups: "docker"
+#     mode: "0775"
   
 
 # - name: apt | Downgrade 'docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-compose-plugin','docker-engine'
@@ -116,28 +118,82 @@
     dest: /lib/systemd/system/docker.service
     regexp: '^ExecStart'
     line: 'ExecStart=/usr/bin/dockerd'
-    state: present
+    state: "{{state_value}}"
+  become: yes
   # register: result_service
-- name: Reload systemd when service definition changed
-  command: systemctl daemon-reload
 
-- name: Update docker service startup
-  template: 
-    src: docker_daemon.json 
-    dest: /etc/docker/daemon.json
-  register: result
-  notify:
-  - restart docker
-  
-- name: systemctl enable docker.service
-  command: systemctl enable docker.service
-
-- name: systemctl enable containerd.service
-  command: systemctl enable containerd.service
-
-- name: Reload systemd when service definition changed
-  command: systemctl daemon-reload
-  # when: result_service.failed == false
-
-- name: Notify Docker service right now to restart
+# - name: Reload systemd when service definition changed
+#   command: systemctl daemon-reload
+- name: Notify Docker service right now to stop
   meta: flush_handlers
+
+- name: Disable docker.service 
+  command: systemctl disable --now docker.service docker.socket
+  become: yes
+
+# - name: Update docker service startup
+#   template: 
+#     src: docker_daemon.json 
+#     dest: /etc/docker/daemon.json
+#   become: yes
+#   register: result
+  # notify:
+  # - restart docker
+
+- name: Check rootless
+  shell: >
+    echo $DOCKER_HOST |wc -l
+  register: result
+
+- debug:
+    msg: "{{result}}"
+- name: dockerd-rootless-setuptool.sh install --force
+  command: dockerd-rootless-setuptool.sh install --force
+  # command: whoami
+  # become_user: "{{user_account.name}}"
+  # become_method: sudo
+  when: "'0' == result.stdout"
+  register: rootless_status
+
+- debug:
+    msg: "{{rootless_status}}"
+
+- debug:
+    msg: "updating {{bashrc.stat.path}}"
+
+# - name: update {{bashrc.stat.path}}
+#   lineinfile: 
+#     dest: "{{bashrc.stat.path}}"
+#     regexp: '{{item}}'
+#     line: "{{item}}"
+#     state: "{{state_value}}"
+#   with_items: "{{docker.user_env_vars}}"
+  
+
+# - name: load bashrc
+#   command: loginctl enable-linger "{{user_account.name}}"
+#   become: True
+#   become_method: sudo
+
+# - name: systemctl enable docker.service docker.socket
+#   command: systemctl enable --user docker.service docker.socket
+
+# - name: systemctl enable containerd.service
+#   command: systemctl enable containerd.service
+
+# - name: Reload systemd when service definition changed
+#   command: systemctl daemon-reload
+#   # when: result_service.failed == false
+# - name: systemctl start  docker.service
+#   command: systemctl --user start docker.service docker.socket
+#   become_user: "{{user_account.name}}"
+#   become_method: sudo
+
+# - name: Notify Docker service right now to restart
+#   meta: flush_handlers
+
+
+- name: Wait for server to restart
+  reboot:
+    reboot_timeout: 3600
+  become: True

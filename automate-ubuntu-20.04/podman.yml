@@ -1,7 +1,7 @@
 - hosts: master
   gather_facts: yes
-  remote_user: "{{ansible_remote_user}}"
-  become: true
+  remote_user: "{{user_account.name}}"
+  # become: true
   # become_method: sudo
   vars_files:
     - config.yml

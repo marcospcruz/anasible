@@ -12,3 +12,9 @@
 - name: Podman | Info
   become_user: "{{user_account.name}}"
   command:  podman info
+  register: info
+
+- debug:
+    msg: "{{info}}"
+    # msg: "{{item}}"
+  # with_items: info.stdout_lines

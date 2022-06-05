@@ -17,9 +17,11 @@
   poll: 5
 
 - debug:
-    msg: "{{rc_status.rc}}"
+    msg: "{{item}}"
+  with_items: rc_status.stderr_lines
+
 - name:  minikube delete
-  command: "{{user_account.home}}/.fabric8/bin/minikube delete"
+  command: "minikube delete"
   when: "'1' == fabric_output.stdout"  
   ignore_errors: yes
   async: 600
@@ -28,11 +30,15 @@
 
 
 - name:  minikube start
-  command: "{{user_account.home}}/.fabric8/bin/minikube start --memory=1848mb --driver=podman --kubernetes-version={{k8s.version}}"
+  # command: "{{user_account.home}}/.fabric8/bin/minikube start --memory=1848mb --driver=kvm --kubernetes-version={{k8s.version}}"
+  # command: "{{user_account.home}}/.fabric8/bin/minikube start --memory=1848mb --kubernetes-version={{k8s.version}}"
+  command: "{{user_account.home}}/.fabric8/bin/minikube start --driver {{vm_driver}} --container-runtime=containerd"
   when: "'1' == fabric_output.stdout"  
   async: 600
   poll: 5
   ignore_errors: yes
+  register: minikube_status
+
 
 - name:  minikube update-context
   command: "{{user_account.home}}/.fabric8/bin/minikube update-context"

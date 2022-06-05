@@ -1,14 +1,15 @@
-- hosts: raspberry-node-2
+- hosts: all
   gather_facts: yes
-  remote_user: "{{ansible_remote_user}}"
-  become: true
-  become_method: sudo
-  become_user: "{{user_account.name}}"
+  remote_user: "{{user_account.name}}"
+  # become: true
+  # become_method: sudo
+  # become_user: "{{user_account.name}}"
   vars_files:
     - config.yml
   vars:
     # gofabric8_start: "gofabric8 start --vm-driver=kvm" ## not supported
     gofabric8_start: "gofabric8 start"
+    vm_driver: docker
 
   roles:
   - defaults

@@ -6,8 +6,11 @@ raspberry:
   system:
     firmware:
       file:
-        content: "cgroup_enable=memory cgroup_memory=1 net.ifnames=0 dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait"
+        content: "cgroup_enable=cpuset cgroup_enable=memory cgroup_memory=1 net.ifnames=0 dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait"
         path: /boot/firmware/cmdline.txt
+state:
+  present: "present"
+  absent: "absent"    
 # nodes: all
 # mkpasswd --method=sha-512
 user_account:
@@ -15,7 +18,7 @@ user_account:
   groups: ['marcospcruz','sudo','libvirt']
   password: "{{password}}"
   home: /home/marcospcruz
-
+  
 
 apt:
   modules:
@@ -24,22 +27,30 @@ apt:
       - pulseaudio
   rockpi:
     packages:
-    - rockchip-fstab 
+    # - rockchip-fstab 
     - rockchip-overlay
     - linux-4.4-latest # kernel version(>=4.4.154.100)
-    - broadcom-wifibt-firmware(>=0.6)
+    - broadcom-wifibt-firmware
     - rockpi4-dtbo
   packages: 
   - gnupg2
   - net-tools  
   - vim
   - curl
-  # - python3
+  - dbus-user-session
+  - glib-networking 
+  - libgtk-3-common
+  # - python3 
+  # - kvm 
+  # - libvirt-bin 
+  - virt-manager
+  # - ubuntu-vm-builder
   - bridge-utils 
   - cpu-checker 
   - libvirt-clients 
   - libvirt-daemon 
   - libvirt-daemon-system
+  - aptitude
   - qemu 
   - qemu-kvm
   - hdparm
@@ -51,31 +62,19 @@ apt:
   - dnsutils
   - ca-certificates 
   - apt-transport-https
-  - gnupg
-  - lsb-release
-  # - apt-transport-https
-  # - ca-certificates
-  # - software-properties-common
-  # - nfs-common
-  # - libc6
-  # - build-essential
-  # - flex
-  # - bison
-  # - libssl-dev
-  # - libelf-dev
-  # - bc
-  # - qemu-kvm
+  - gnupg   
+  - software-properties-common
+  - uidmap  
+  - snapd
+  - cgroup-lite
+  - conntrack 
   
-  # - libvirt-clients
-  # - bridge-utils
-  # - gnupg2
-  # - snapd
 k8s:
   version: "v1.23.4-rc.0"
 docker:
   # devicemapper or overlay2
-  # storage_driver: devicemapper
-  storage_driver: overlay2
+  storage_driver: devicemapper
+  # storage_driver: overlay2
   expose_tcp: true
   # version: "17.12.0~ce-0~ubuntu"
   version: "5:20.10.16~3-0~ubuntu-focal"
@@ -84,6 +83,10 @@ docker:
   - docker-ce-cli
   - containerd.io
   - docker-compose-plugin
+  user_env_vars:
+  - 'export XDG_RUNTIME_DIR=/run/user/$UID'
+  - 'export PATH=/usr/bin:$PATH'
+  - 'export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock'
                                             
 # https://wiki.radxa.com/Rockpi4/Ubuntu
 rockpi:

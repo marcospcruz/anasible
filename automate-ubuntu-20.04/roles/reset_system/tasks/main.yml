@@ -3,30 +3,35 @@
   command: whoami
   register: whoami
 
-- name: Remove {{apt.packages}}
-  include_tasks: defaults.yml
-
 - debug:
     msg: "I am {{whoami.stdout}}"
+
+
+
 
 - name: Remove Kubernetes Tools
   include_tasks: kubernetes.yml
 
 
+- name: Remove podman
+  include_tasks: podman.yml
+  
 - name: Remove Docker
   include_tasks: docker.yml
 
 
-- name: Remove podman
-  include_tasks: podman.yml
+- name: Remove {{apt.packages}}
+  include_tasks: defaults.yml
+
 
 
 
 - name: Wait for server to restart
   reboot:
     reboot_timeout: 3600
-  async: 600
-  poll: 5
-  
+  # async: 600
+  # poll: 5
+  # ignore_errors: yes
+
 - name: Remove user
   include_tasks: user.yml

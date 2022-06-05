@@ -1,5 +1,5 @@
 ---
-- name: apt | Remove Podman
+- name:  Remove Podman
   apt:
     name: ['podman']
     # force: yes
@@ -24,11 +24,11 @@
     state: absent
     path: "{{item}}"
   with_items:
-  - /home/marcospcruz/.config
-  - /home/marcospcruz/.fabric8
-  - /home/marcospcruz/.kube
-  - /home/marcospcruz/.local
-  - /home/marcospcruz/.minikube
+  - "{{user_account.home}}/.config"
+  - "{{user_account.home}}/.fabric8"
+  - "{{user_account.home}}/.kube"
+  - "{{user_account.home}}/.local"
+  - "{{user_account.home}}/.minikube"
   - /etc/apt/sources.list.d
   - /usr/local/bin/minikube
 

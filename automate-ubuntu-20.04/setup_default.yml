@@ -8,7 +8,7 @@
   vars:
     CRI_IO_VERSION: 1.17
   roles:
-  # - defaults
+  - defaults
   - rockpi_update
 
 - hosts: ['raspberry-4-node-master','raspberry-4-node-2']
@@ -33,11 +33,24 @@
     - config.yml
   vars:
     CRI_IO_VERSION: 1.17
-
+    state_value: "{{state.present}}"
+  roles:
+  - base
+  - defaults
+  - kvm-hyphervisor
+ 
+- hosts: all
+  gather_facts: yes
+  remote_user: "{{user_account.name}}"
+  # become: true
+  # become_method: sudo
+  vars_files:
+    - config.yml
+  vars:
+    CRI_IO_VERSION: 1.17
+    state_value: "{{state.present}}"
   roles:
   - defaults
-  # - kvm-hyphervisor
   # - podman
   - docker
-  # - fabric8
- 
+  - fabric8
